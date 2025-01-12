@@ -29,39 +29,61 @@ def ver_arg_rut(rute):
             return re.sub(r"^\.", f"{gr()}", rute)
         elif re.match(r"^[\w/ \.-]*/.+", rute):
             return rute
+        elif re.match(r"^0x[\da-f]+$", rute.lower()):
+            p_color(tree[rute.lower()], 'Yellow')
+            return tree[rute.lower()]
         else:
             p_error('Invalid Rute')
             return False
-    return gr()
+    return gr() if tree == {} else tree["0x0"]
     
 
 # * List Elements
 def lse(arg1 = None):
     rute = ver_arg_rut(arg1)
+    if not rute:
+        return
     p_elemets(ge(rute), "Cyan", "Magenta")
 
 # * Get Rute 
 def gr():
     return os.getcwd()
 
+ # * Count the directories
+def dirs(arg1):
+    rute = ver_arg_rut(arg1)
+    d = 0
+    ele = ge(rute)
+    for i in range(len(ele[0])):
+        if ele[1][i]:
+            d += 1
+            d += dirs(rute+"/"+ele[0][i])
+    return d
+
+def print_id(dir, id, tab, i = 1):
+    p_color(['|\t'*(tab-1)+'|-> '*i,dir, '\tid = ' + str(hex(id))],['Yellow','Cyan', 'White'])
+    return 1
+
+
 # * Show Tree
 def sdt(arg1=None, tab=1, assing=False, t = {}, id = 0):
     rute = ver_arg_rut(arg1)
+    if not rute:
+        return
     ele = ge(rute)
     if tab == 1:
         if assing:
-            p_color([rute, '\tid = '+str(hex(id))], ["Cyan", "White"])
             t[hex(id)] = rute
-            id += 1
+            id += print_id(rute, id, tab, 0)
         else:
             p_color(rute, "Cyan")
     for i in range(len(ele[0])):
         if ele[1][i]:
             if assing:
                 t[hex(id)] = rute+'/'+ele[0][i]
-                id += 1
-                p_color(['|\t'*(tab-1)+'|-> ',ele[0][i], '\tid = ' + str(hex(id - 1))],['Yellow','Cyan', 'White'])
+                id += print_id(ele[0][i], id, tab)
                 sdt(rute+"/"+ele[0][i], tab+1, True, t, id)
+                id += dirs(rute+"/"+ele[0][i])
             else:
                 p_color(['|\t'*(tab-1)+'|-> ',ele[0][i]],['Yellow','Cyan'])
                 sdt(rute+"/"+ele[0][i], tab+1)
@@ -78,10 +100,6 @@ def aat(arg1=gr()):
         global tree
         tree = sdt(arg1=rute, assing=True)
 
-# * Exit
-def ext():
-    exit()
-
 # * Documentation
 def doc(arg1=None,st = False):
     if st:
@@ -96,6 +114,7 @@ def doc(arg1=None,st = False):
             p(["\tlse <rute>"," - List the elements of a rute, the actual rute by default."])
             p(["\tdoc"," - Show the documentation."])
             p(["\tsdt <rute>", " - Show a tree of directories from a rute, the actual rute by default."])
+            p(["\taat <rute>", " - Create a tree of directories with unique id from a rute, actual rute by the default."])
     #TODO agregar la documentacion
 
 # * Commands
@@ -107,7 +126,6 @@ def command(usr):
         "doc" : doc,
         "sdt" : sdt,
         "aat" : aat,
-        "ext" : ext
     }
     try:
         if len(command) == 1:
@@ -120,7 +138,6 @@ def command(usr):
 
 def main():
     aat()
-    print(tree)
 
 if __name__ == "__main__":
     main()
