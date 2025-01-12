@@ -2,7 +2,7 @@ from commands import command
 
 def main():
     while True:
-        usr = input().split(' ')
+        usr = input()
         command(usr)
         print()
 
