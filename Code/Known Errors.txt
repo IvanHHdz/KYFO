@@ -1,0 +1,8 @@
+Error - 001
+    Sintax Error
+
+Error - 002
+    Information not founded
+
+Error - 003
+    Rute Error
