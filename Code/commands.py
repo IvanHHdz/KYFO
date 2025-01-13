@@ -3,8 +3,11 @@ from format import p_error, p_elemets, p_color
 import re
 from functools import partial
 from shlex import split
+from shutil import move
 
 tree = {}
+sf = None
+auto = False
 
 # * Get Elements
 def ge(rute):
@@ -29,8 +32,7 @@ def ver_arg_rut(rute):
             return re.sub(r"^\.", f"{gr()}", rute)
         elif re.match(r"^[\w/ \.-]*/.+", rute):
             return rute
-        elif re.match(r"^0x[\da-f]+$", rute.lower()):
-            p_color(tree[rute.lower()], 'Yellow')
+        elif re.match(r"^0x[\da-f]+$", rute.lower()) and tree != {}:
             return tree[rute.lower()]
         else:
             p_error('Invalid Rute')
@@ -91,14 +93,57 @@ def sdt(arg1=None, tab=1, assing=False, t = {}, id = 0):
 
 # * Show Rute
 def srt():
-    p_color(gr(), "White")
+    p_color(ver_arg_rut(None), "White")
 
 # * Assing a tree
-def aat(arg1=gr()):
+def aat(arg1=None):
     rute = ver_arg_rut(arg1)
     if rute:
         global tree
         tree = sdt(arg1=rute, assing=True)
+
+def mov(arg1, arg2):
+    if arg1 == "#s" and sf:
+        ori = sf
+    else:
+        ori = ver_arg_rut(arg1)
+    des = ver_arg_rut(arg2) + "/"
+    if ori and des:
+        move(ori, des)
+        p_color([f"'{ori}'", " was moved to ", f"'{des}'"],["Magenta","White", "Cyan"])
+        if auto:
+            sel('.')
+
+def sel(arg1=None, arg2=None):
+    if arg1:
+        rute = ver_arg_rut(arg2)
+        if not rute:
+            return
+        ele = ge(rute)
+        for i in range(len(ele[0])):
+            if not ele[1][i]:
+                if ele[0][i] == arg1 or arg1 == '.':
+                    p_color([f"'{ele[0][i]}'",", from ",f"'{rute}/'",", is now the selected file"],["Magenta", "White", "Cyan", "White"])
+                    global sf
+                    sf = rute + "/" + ele[0][i]
+                    return
+        p_error("Not files founded.")
+    else:
+        if sf:
+            p_color([f"'{sf}'", ", from, is the selected file"],["Magenta", "White"])
+        else:
+            p_color("You haven't selected a file yet.","White")
+
+def aut():
+    global auto
+    if auto:
+        auto = False
+        p_color("The automatic selection of files is off.", "Green")
+    else:
+        auto = True
+        p_color("The automatic selection of files is on.", "Green")
+        if not sf:
+            sel('.')
 
 # * Documentation
 def doc(arg1=None,st = False):
@@ -115,7 +160,8 @@ def doc(arg1=None,st = False):
             p(["\tdoc"," - Show the documentation."])
             p(["\tsdt <rute>", " - Show a tree of directories from a rute, the actual rute by default."])
             p(["\taat <rute>", " - Create a tree of directories with unique id from a rute, actual rute by the default."])
-    #TODO agregar la documentacion
+#TODO agregar la documentacion
+#TODO agregar las consideraciones para la correcta sintaxis de cada comando, en especial mov
 
 # * Commands
 def command(usr):
@@ -126,18 +172,25 @@ def command(usr):
         "doc" : doc,
         "sdt" : sdt,
         "aat" : aat,
+        "mov" : mov,
+        "sel" : sel,
+        "aut" : aut
     }
     try:
         if len(command) == 1:
             return commands[command[0]]()
-        else:
+        elif len(command) == 2:
             return commands[command[0]](arg1 = command[1])
+        else:
+            return commands[command[0]](arg1 = command[1], arg2 = command[2])
     except:
         p_error("Sintax Error")
         doc(st = True)
 
 def main():
-    aat()
+    command('aat ./Example')
+    command('aut')
+    command('mov #s 0x3')
 
 if __name__ == "__main__":
     main()
