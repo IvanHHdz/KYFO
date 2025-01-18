@@ -9,6 +9,8 @@ tree = {}
 sf = None
 auto = False
 
+rute_slash = '/' if os.name == 'posix' else '\\'
+
 # * Get Elements
 def ge(rute):
     try:
@@ -29,8 +31,12 @@ def ge(rute):
 def ver_arg_rut(rute):
     if rute:
         if re.match(r"^\./.+", rute):
-            return re.sub(r"^\.", f"{gr()}", rute)
-        elif re.match(r"^[\w/ \.-]*/.+", rute):
+            if os.name == 'nt':
+                r = re.sub(r"^\./", gr().replace('\\', '\\\\') + '\\\\', rute)
+                return r
+            else:
+                return re.sub(r"^\.", f"{gr()}", rute)
+        elif re.match(r"^[\w/ \.-]*/.*", rute) or re.match(r"^[\w\\ \.-:]*\\.*", rute):
             return rute
         elif re.match(r"^0x[\da-f]+$", rute.lower()) and tree != {}:
             return tree[rute.lower()]
@@ -59,7 +65,7 @@ def dirs(arg1):
     for i in range(len(ele[0])):
         if ele[1][i]:
             d += 1
-            d += dirs(rute+"/"+ele[0][i])
+            d += dirs(rute+rute_slash+ele[0][i])
     return d
 
 def print_id(dir, id, tab, i = 1):
@@ -82,13 +88,13 @@ def sdt(arg1=None, tab=1, assing=False, t = {}, id = 0):
     for i in range(len(ele[0])):
         if ele[1][i]:
             if assing:
-                t[hex(id)] = rute+'/'+ele[0][i]
+                t[hex(id)] = rute+rute_slash+ele[0][i]
                 id += print_id(ele[0][i], id, tab)
-                sdt(rute+"/"+ele[0][i], tab+1, True, t, id)
-                id += dirs(rute+"/"+ele[0][i])
+                sdt(rute+rute_slash+ele[0][i], tab+1, True, t, id)
+                id += dirs(rute+rute_slash+ele[0][i])
             else:
                 p_color(['|\t'*(tab-1)+'|-> ',ele[0][i]],['Yellow','Cyan'])
-                sdt(rute+"/"+ele[0][i], tab+1)
+                sdt(rute+rute_slash+ele[0][i], tab+1)
     return t
 
 # * Show Rute
@@ -107,7 +113,7 @@ def mov(arg1, arg2):
         ori = sf
     else:
         ori = ver_arg_rut(arg1)
-    des = ver_arg_rut(arg2) + "/"
+    des = ver_arg_rut(arg2) + rute_slash
     if ori and des:
         move(ori, des)
         p_color([f"'{ori}'", " was moved to ", f"'{des}'"],["Magenta","White", "Cyan"])
@@ -125,7 +131,7 @@ def sel(arg1=None, arg2=None):
                 if ele[0][i] == arg1 or arg1 == '.':
                     p_color([f"'{ele[0][i]}'",", from ",f"'{rute}/'",", is now the selected file"],["Magenta", "White", "Cyan", "White"])
                     global sf
-                    sf = rute + "/" + ele[0][i]
+                    sf = rute + rute_slash + ele[0][i]
                     return
         p_error("Not files founded.")
     else:
@@ -160,6 +166,9 @@ def doc(arg1=None,st = False):
             p(["\tdoc"," - Show the documentation."])
             p(["\tsdt <rute>", " - Show a tree of directories from a rute, the actual rute by default."])
             p(["\taat <rute>", " - Create a tree of directories with unique id from a rute, actual rute by the default."])
+            p(["\tmove <file> <rute>" , " - Moves a file to a new rute."])
+            p(["\tsel <file>" , " - Select a file."])
+            p(["\taut" , " - Activate/Desactivate the auto selection of files."])
 #TODO agregar la documentacion
 #TODO agregar las consideraciones para la correcta sintaxis de cada comando, en especial mov
 
