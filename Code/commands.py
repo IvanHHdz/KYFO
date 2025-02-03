@@ -151,6 +151,18 @@ def aut():
         if not sf:
             sel('.')
 
+def new(arg1=None, arg2="None"):
+    rute = ver_arg_rut(arg1)
+    if not rute:
+        return
+    os.makedirs(rute+rute_slash+arg2, exist_ok=True)
+
+def rmv(arg1=None):
+    rute = ver_arg_rut(arg1)
+    if not rute:
+        return
+    os.rmdir(rute)
+
 # * Documentation
 def doc(arg1=None,st = False):
     if st:
@@ -166,11 +178,11 @@ def doc(arg1=None,st = False):
             p(["\tdoc"," - Show the documentation."])
             p(["\tsdt <rute>", " - Show a tree of directories from a rute, the actual rute by default."])
             p(["\taat <rute>", " - Create a tree of directories with unique id from a rute, actual rute by the default."])
-            p(["\tmove <file> <rute>" , " - Moves a file to a new rute."])
+            p(["\tmov <file> <rute>" , " - Moves a file to a new rute."])
             p(["\tsel <file>" , " - Select a file."])
             p(["\taut" , " - Activate/Desactivate the auto selection of files."])
-#TODO agregar la documentacion
-#TODO agregar las consideraciones para la correcta sintaxis de cada comando, en especial mov
+            p(["\tnew <rute> <name>" , " - Make a new directory."])
+            p(["\trmv <rute>" , " - Remove a directory."])
 
 # * Commands
 def command(usr):
@@ -183,7 +195,9 @@ def command(usr):
         "aat" : aat,
         "mov" : mov,
         "sel" : sel,
-        "aut" : aut
+        "aut" : aut,
+        "new" : new,
+        "rmv" : rmv
     }
     try:
         if len(command) == 1:
@@ -195,11 +209,10 @@ def command(usr):
     except:
         p_error("Sintax Error")
         doc(st = True)
-
+        
 def main():
     command('aat ./Example')
-    command('aut')
-    command('mov #s 0x3')
+    command('new 0x2 Dir')
 
 if __name__ == "__main__":
     main()
